@@ -48,19 +48,19 @@ Course project for *Computer Vision and Image Processing* (Master's in Informati
 
 ## Results
 
-**Main result:** all six models exceed 99.8% validation accuracy; the soft-voting ensemble reaches **99.98%**, the same as the best single model (M4), and M5 makes only **3 errors in 5,303** images.
+**Main result:** all six models exceed 99.8% validation accuracy, and the soft-voting ensemble (99.98%) gives no gain over the best single model (M4).
 
 | Model | Best val. accuracy | Notes |
 |-------|-------------------|-------|
 | M1 Baseline | 99.98% | Unstable early on (drop to 95.2% at epoch 2), train acc. reaches 100% |
-| M2 Geo | 99.94% | |
-| M3 Colour + Geo | 99.96% | |
-| M4 Occlusion | **99.98%** | |
-| M5 RandAug + MixUp | 99.94% | Chosen for detailed analysis: lower training accuracy than the others (MixUp acts as a strong regulariser) yet near-perfect validation (final epoch: 99.92%) |
+| M2 Geo | 99.94% | Not better than the baseline |
+| M3 Colour + Geo | 99.96% | No notable difference vs M2 |
+| M4 Occlusion | **99.98%** | Ties M1 as best single model; part of the ensemble |
+| M5 RandAug + MixUp | 99.94% | Train acc. only ~94% (measured on mixed images) but near-perfect validation (final epoch: 99.92%) |
 | M6 ViT-Tiny | 99.87% | Smoothest learning curve |
-| **Ensemble (M4 + M5 + M6)** | **99.98%** | Soft voting, averages the softmax outputs |
+| **Ensemble (M4 + M5 + M6)** | **99.98%** | Same as the best single model (M4): no gain from combining |
 
-All numbers are on the 5,303-image validation split (`05_ensemble.ipynb`, `03_models.ipynb`). The validation set saturates: the differences between models are a few images, which is probably within run-to-run noise (each model was trained once, with a single seed).
+All numbers are on the 5,303-image validation split (`05_ensemble.ipynb`, `03_models.ipynb`). I chose M5 for the detailed analysis below because MixUp acts as a strong regulariser: its training accuracy stays around 94%, the lowest of the six (it is measured on blended images, so it is not directly comparable), yet its validation accuracy is near-perfect. The ensemble uses soft voting, averaging the softmax outputs of M4, M5 and M6. The validation set saturates: the differences between models are a few images, which is probably within run-to-run noise (each model was trained once, with a single seed).
 
 ![Confusion matrix of M5 on the validation set](docs/images/confusion-matrix-m5.png)
 
@@ -99,7 +99,7 @@ The six experiments, from simplest to most regularised:
 | M2 Geo | ResNet18 (modified) | CLAHE + shift/scale/rotate (±10%, ±20%, ±15°) | Camera angle and distance |
 | M3 Colour + Geo | ResNet18 (modified) | M2 + brightness/contrast, hue/saturation, Gaussian noise | Weather and colour degradation |
 | M4 Occlusion | EfficientNet-B0 (modified) | M2 + CoarseDropout (cutout) | Signs partly hidden by branches or stickers |
-| M5 RandAug + MixUp | EfficientNet-B0 (modified) | CLAHE + 2 random heavy transforms + MixUp (α=0.2) | Strong regularisation against memorisation |
+| M5 RandAug + MixUp | EfficientNet-B0 (modified) | CLAHE + 2 random heavy transforms (applied with 80% probability) + MixUp (α=0.2) | Strong regularisation against memorisation |
 | M6 Transformer | ViT-Tiny (timm, `img_size=48`) | Same as M3 | Self-attention instead of convolutions |
 
 > **Caveat:** with Albumentations 2.0.8, some arguments of `CoarseDropout` (`max_holes`, `max_height`, ...), `GaussNoise` (`var_limit`) and `ElasticTransform` (`alpha_affine`) are ignored (warnings in `03_models.ipynb`). The noise in M3 and M6, the cutout in M4 and the cutout and elastic transforms in M5 therefore ran with the library defaults, not the values listed here. The experiments compare augmentation *families*, not the exact parameters above.
@@ -181,7 +181,7 @@ Run the notebooks **from the `notebooks/` folder** (paths such as `../data` and 
 2. `03_models`: trains all six models one after the other (15 epochs each). This is the long step.
 3. `04_analysis` and `05_ensemble`: load the saved checkpoints, so they need step 2 first.
 
-The checkpoints are git-ignored, so a fresh clone has none: you must run `03_models` once to create them. `NUM_EPOCHS`, batch size and learning rates are set at the top of the cells in `03_models.ipynb`. `requirements.txt` pins the versions of the original virtual environment.
+The checkpoints are git-ignored, so a fresh clone has none: you must run `03_models` once to create them. `NUM_EPOCHS` is set in the setup cell of `03_models.ipynb`; the batch size and learning rate are set in each model's cell. `requirements.txt` pins the versions of the original virtual environment.
 
 ## References
 

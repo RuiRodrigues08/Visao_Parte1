@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 
 def get_data_splits(train_dir, test_size=0.15, random_state=42):
-    """Lê as pastas e devolve DataFrames para treino e validação (estratificados)."""
+    """Read the class folders and return stratified train and validation DataFrames."""
     image_paths = glob.glob(os.path.join(train_dir, "*", "*.ppm")) 
     data = []
     for path in image_paths:
@@ -16,7 +16,7 @@ def get_data_splits(train_dir, test_size=0.15, random_state=42):
         
     df = pd.DataFrame(data)
     
-    # Split Estratificado
+    # Stratified split
     train_df, val_df = train_test_split(
         df, 
         test_size=test_size, 
@@ -48,7 +48,7 @@ class GTSRBDataset(Dataset):
         return image, torch.tensor(label, dtype=torch.long)
 
 def get_dataloaders(train_df, val_df, train_transform=None, val_transform=None, batch_size=32):
-    """Função utilitária para gerar rapidamente os dataloaders."""
+    """Utility to quickly build the train and validation dataloaders."""
     train_dataset = GTSRBDataset(train_df, transform=train_transform)
     val_dataset = GTSRBDataset(val_df, transform=val_transform)
     

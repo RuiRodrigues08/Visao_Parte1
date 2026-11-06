@@ -1,17 +1,17 @@
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-# Tamanho padrão definido
+# Default image size
 IMAGE_SIZE = 48 
 
-# Valores aproximados da média e desvio padrão do dataset GTSRB
+# Approximate mean and standard deviation of the GTSRB dataset
 GTSRB_MEAN = [0.3403, 0.3121, 0.3214]
 GTSRB_STD = [0.2724, 0.2608, 0.2669]
 
 def get_train_transform_baseline():
     """
-    Modelo 1 (Baseline) - Sem augmentation.
-    Apenas Resize, Normalização e conversão para Tensor PyTorch.
+    Model 1 (Baseline) - no augmentation.
+    Only resize, normalisation and conversion to a PyTorch tensor.
     """
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
@@ -21,29 +21,29 @@ def get_train_transform_baseline():
 
 def get_train_transform_geo():
     """
-    Modelo 2 (Geo) - CLAHE + Augmentation Geométrica.
+    Model 2 (Geo) - CLAHE + geometric augmentation.
     """
     return A.Compose([
-        # 1. Redimensionar
+        # 1. Resize
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
-        # 2. Filtro CLAHE (Aplica a equalização de histograma adaptativa) - probabilidade de 100%
+        # 2. CLAHE filter (adaptive histogram equalisation) - applied with 100% probability
         A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),
-        # 3. Augmentation Geométrica (Shift, Scale, Rotate)
+        # 3. Geometric augmentation (shift, scale, rotate)
         A.ShiftScaleRotate(
-            shift_limit=0.1,   # Move 10% para os lados/cima/baixo
-            scale_limit=0.2,   # Zoom in/out até 20%
-            rotate_limit=15,   # Roda até 15 graus
-            p=0.5              # Aplica apenas a 50% das imagens da batch para manter variedade
+            shift_limit=0.1,   # Shift up to 10% in any direction
+            scale_limit=0.2,   # Zoom in/out up to 20%
+            rotate_limit=15,   # Rotate up to 15 degrees
+            p=0.5              # Applied to only 50% of the images to keep variety
         ),
-        # 4. Normalizar e converter
+        # 4. Normalise and convert
         A.Normalize(mean=GTSRB_MEAN, std=GTSRB_STD),
         ToTensorV2()
     ])
 
 def get_valid_transform():
     """
-    Transformação obrigatória para Validação e Teste.
-    NUNCA se aplica augmentation a dados de teste, apenas Resize e Normalização!
+    Mandatory transform for validation and test.
+    Never apply augmentation to evaluation data, only resize and normalisation.
     """
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
@@ -53,8 +53,8 @@ def get_valid_transform():
 
 def get_valid_transform_clahe():
     """
-    Transformação de validação para modelos treinados com CLAHE.
-    Aplica o filtro de luz, mas NUNCA aplica rotações ou zooms aleatórios.
+    Validation transform for models trained with CLAHE.
+    Applies the contrast filter but never random rotations or zooms.
     """
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
@@ -64,7 +64,7 @@ def get_valid_transform_clahe():
     ])
 
 def get_train_transform_color_geo():
-    """Modelo 3 e Modelo 6 (Cor + Geo): CLAHE, Rotação, Zoom, Cor, Ruído"""
+    """Models 3 and 6 (Colour + Geo): CLAHE, rotation, zoom, colour, noise"""
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
         A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),
@@ -77,7 +77,7 @@ def get_train_transform_color_geo():
     ])
 
 def get_train_transform_occlusion():
-    """Modelo 4 (Oclusão): Cutout / CoarseDropout"""
+    """Model 4 (Occlusion): Cutout / CoarseDropout"""
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
         A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),
@@ -88,7 +88,7 @@ def get_train_transform_occlusion():
     ])
 
 def get_train_transform_randaug():
-    """Modelo 5 (RandAugment Simulado): Escolhe transformações pesadas aleatoriamente"""
+    """Model 5 (simulated RandAugment): randomly picks heavy transforms"""
     return A.Compose([
         A.Resize(height=IMAGE_SIZE, width=IMAGE_SIZE),
         A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),

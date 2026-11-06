@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 
 def train_one_epoch(model, dataloader, criterion, optimizer, device):
-    """Treina o modelo durante uma única epoch."""
+    """Train the model for a single epoch."""
     model.train()
     running_loss = 0.0
     correct = 0
@@ -32,7 +32,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     return running_loss / len(dataloader), 100. * correct / total
 
 def validate_one_epoch(model, dataloader, criterion, device):
-    """Avalia o modelo no dataset de validação."""
+    """Evaluate the model on the validation set."""
     model.eval()
     running_loss = 0.0
     correct = 0
@@ -55,7 +55,7 @@ def validate_one_epoch(model, dataloader, criterion, device):
     return running_loss / len(dataloader), 100. * correct / total
 
 def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, device, num_epochs, model_name):
-    """Loop principal que gere as epochs e guarda o melhor modelo."""
+    """Main loop: runs the epochs and saves the best model."""
     best_acc = 0.0
     history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
     
@@ -77,16 +77,16 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         if val_acc > best_acc:
             best_acc = val_acc
             torch.save(model.state_dict(), save_path)
-            print(f"-> Melhor modelo guardado! (Accuracy: {best_acc:.2f}%)")
+            print(f"-> Best model saved! (Accuracy: {best_acc:.2f}%)")
             
     return history
 
 # ==========================================
-# =   FUNÇÕES PARA O MODELO 5 (MIXUP)      =
+# =   FUNCTIONS FOR MODEL 5 (MIXUP)        =
 # ==========================================
 
 def mixup_data(x, y, alpha=0.2, device='cuda'):
-    """Gera as misturas de MixUp para um batch de dados."""
+    """Generate the MixUp mixtures for a batch."""
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
     else:
@@ -100,7 +100,7 @@ def mixup_data(x, y, alpha=0.2, device='cuda'):
     return mixed_x, y_a, y_b, lam
 
 def train_mixup_epoch(model, dataloader, criterion, optimizer, device, alpha=0.2):
-    """Versão do treino de epoch especificamente para o Modelo 5 com MixUp."""
+    """Epoch training loop specific to Model 5 (MixUp)."""
     model.train()
     running_loss = 0.0
     correct = 0
